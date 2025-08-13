@@ -23,10 +23,10 @@ interface ProductsProps {
   image: string[];
   category: string;
   subCategory: string;
-  sizes: string[];
+  sizes: string | string[];
   date: string;
   bestseller: boolean;
-  qty: number;
+  qty?: number | undefined;
 }
 
 interface SearchProps {
@@ -39,8 +39,15 @@ interface SearchProps {
 interface CartContextType {
   cartItems: ProductsProps[];
   setCartItems: React.Dispatch<React.SetStateAction<ProductsProps[]>>;
-  addToCart: (product: ProductsProps, size: string[]) => void;
-  updateCart: (product: ProductsProps, size: string[], action: string) => void;
+  addToCart: (
+    product: ProductsProps,
+    size: string | string[] | undefined
+  ) => void;
+  updateCart: (
+    product: ProductsProps,
+    size: string | string[],
+    action: string
+  ) => void;
   removeFromCart: (product: ProductsProps) => void;
 }
 
@@ -96,7 +103,10 @@ function App() {
     setShowSearch,
   };
 
-  const addToCart = (product: ProductsProps, size: string[] | any) => {
+  const addToCart = (
+    product: ProductsProps,
+    size: string | string[] | undefined
+  ) => {
     if (!size) {
       toast.error("Select Product Size");
     } else {
@@ -106,11 +116,19 @@ function App() {
 
   const updateCart = (
     product: ProductsProps,
-    size: string[] | any,
+    size: string | string[],
     action: string
   ) => {
     const isProductInCart = cartItems.filter(
-      (item) => item.id === product.id && size.includes(item.sizes)
+      // (item) => item.id === product.id && size.includes(item.sizes)
+      (item) => {
+        const sizesArray = Array.isArray(size) ? size : [size];
+        const itemSizesArray = Array.isArray(item.sizes)
+          ? item.sizes
+          : [item.sizes];
+        const isOverlap = itemSizesArray.some((s) => sizesArray.includes(s));
+        return item.id === product.id && isOverlap;
+      }
     ).length;
 
     if (isProductInCart) {
@@ -119,7 +137,7 @@ function App() {
           setCartItems((prev) => {
             return prev.map((item) =>
               item.id === product.id && item.sizes === size
-                ? { ...item, sizes: size, qty: item.qty + 1 }
+                ? { ...item, sizes: size, qty: (item.qty ?? 0) + 1 }
                 : item
             );
           });
@@ -130,10 +148,10 @@ function App() {
             return prev
               .map((item) =>
                 item.id === product.id && item.sizes === size
-                  ? { ...item, sizes: size, qty: item.qty - 1 }
+                  ? { ...item, sizes: size, qty: (item.qty ?? 1) - 1 }
                   : item
               )
-              .filter((item) => item.qty >= 1);
+              .filter((item) => (item.qty ?? 0) >= 1);
           });
           break;
 
@@ -164,7 +182,7 @@ function App() {
   };
 
   const subtotal = cartItems.reduce(
-    (acc, item) => acc + item.qty * item.price,
+    (acc, item) => acc + (item.qty ?? 0) * item.price,
     0
   );
   const total = subtotal + 10.0;

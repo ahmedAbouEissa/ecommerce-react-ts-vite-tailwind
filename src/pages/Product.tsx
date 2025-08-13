@@ -12,10 +12,10 @@ interface ProductsProps {
   image: string[];
   category: string;
   subCategory: string;
-  sizes: string[] | any;
+  sizes: string | string[];
   date: string;
   bestseller: boolean;
-  qty: number;
+  qty?: number;
 }
 
 const Product = () => {
@@ -81,7 +81,10 @@ const Product = () => {
           <div className="flex flex-col gap-4 my-8">
             <p>Select Size</p>
             <div className="flex gap-2">
-              {productData.sizes.map((productSize, index) => (
+              {(Array.isArray(productData.sizes)
+                ? productData.sizes
+                : [productData.sizes]
+              ).map((productSize: string | string[], index: number) => (
                 <button
                   key={index}
                   className={`border border-gray-200 py-2 px-4 bg-gray-100 ${

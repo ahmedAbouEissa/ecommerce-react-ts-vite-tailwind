@@ -9,7 +9,10 @@ const Navbar = () => {
   const { showSearch, setShowSearch } = useContext(SearchContext);
   const { cartItems } = useContext(CartContext);
 
-  const totalItemsInCart = cartItems.reduce((acc, item) => acc + item.qty, 0);
+  const totalItemsInCart = cartItems.reduce(
+    (acc, item) => acc + (item.qty ?? 0),
+    0
+  );
 
   return (
     <div className="flex items-center justify-between py-5 font-medium">
